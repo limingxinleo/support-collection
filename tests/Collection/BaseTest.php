@@ -30,5 +30,6 @@ class BaseTest extends TestCase
         $collection = new Collection($arr);
         $this->assertEquals('limx', $collection->name);
         $this->assertEquals('18678017520', $collection->tel['mobile']);
+        $this->assertEquals('18678017520', $collection->get('tel.mobile'));
     }
 }
