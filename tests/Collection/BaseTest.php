@@ -13,6 +13,12 @@ use PHPUnit\Framework\TestCase;
 
 class BaseTest extends TestCase
 {
+    protected $arr = [
+        'name' => 'limx',
+        'sex' => 1,
+        'tel' => ['mobile' => '18678017520', 'phone' => '8653623']
+    ];
+
     public function testInit()
     {
         $arr = ['name' => 'limx', 'sex' => 1];
@@ -22,14 +28,14 @@ class BaseTest extends TestCase
 
     public function testGet()
     {
-        $arr = [
-            'name' => 'limx',
-            'sex' => 1,
-            'tel' => ['mobile' => '18678017520', 'phone' => '8653623']
-        ];
-        $collection = new Collection($arr);
+        $collection = new Collection($this->arr);
         $this->assertEquals('limx', $collection->name);
         $this->assertEquals('18678017520', $collection->tel['mobile']);
         $this->assertEquals('18678017520', $collection->get('tel.mobile'));
+    }
+
+    public function testAll()
+    {
+        
     }
 }
