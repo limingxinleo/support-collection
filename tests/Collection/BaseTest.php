@@ -20,8 +20,9 @@ class BaseTest extends TestCase
     ];
 
     protected $list = [
-        ['id' => 1, 'name' => 'limx'],
-        ['id' => 2, 'name' => 'Agnes'],
+        ['id' => 1, 'name' => 'limx', 'sex' => 'boy'],
+        ['id' => 2, 'name' => 'Agnes', 'sex' => 'girl'],
+        ['id' => 3, 'name' => 'lmx', 'sex' => 'boy'],
     ];
 
     public function testInit()
@@ -80,7 +81,7 @@ class BaseTest extends TestCase
     public function testLast()
     {
         $collection = new Collection($this->list);
-        $this->assertEquals($this->list[1], $collection->last());
+        $this->assertEquals($this->list[2], $collection->last());
     }
 
     public function testAdd()
@@ -130,6 +131,22 @@ class BaseTest extends TestCase
 
         $res = $collection->where('id', 1)->first();
 
-        $this->assertEquals(['id' => 1, 'name' => 'limx'], $res);
+        $this->assertEquals(['id' => 1, 'name' => 'limx', 'sex' => 'boy'], $res);
+    }
+
+    public function testGroupBy()
+    {
+        $collection = new Collection($this->list);
+
+        $res = $collection->groupBy('sex');
+
+        $this->assertEquals([
+            ['id' => 1, 'name' => 'limx', 'sex' => 'boy'],
+            ['id' => 3, 'name' => 'lmx', 'sex' => 'boy'],
+        ], $res->get('boy')->all());
+
+        $this->assertEquals([
+            ['id' => 2, 'name' => 'Agnes', 'sex' => 'girl'],
+        ], $res->get('girl')->all());
     }
 }

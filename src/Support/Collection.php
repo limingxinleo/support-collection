@@ -222,10 +222,44 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
     }
 
     /**
+     * Group an associative array by a field or using a callback.
+     *
+     * @param  callable|string $groupBy
+     * @param  bool            $preserveKeys
+     * @return static
+     */
+    public function groupBy($groupBy, $preserveKeys = false)
+    {
+        $groupBy = $this->valueRetriever($groupBy);
+
+        $results = [];
+
+        foreach ($this->items as $key => $value) {
+            $groupKeys = $groupBy($value, $key);
+
+            if (!is_array($groupKeys)) {
+                $groupKeys = [$groupKeys];
+            }
+
+            foreach ($groupKeys as $groupKey) {
+                $groupKey = is_bool($groupKey) ? (int)$groupKey : $groupKey;
+
+                if (!array_key_exists($groupKey, $results)) {
+                    $results[$groupKey] = new static;
+                }
+
+                $results[$groupKey]->offsetSet($preserveKeys ? $key : null, $value);
+            }
+        }
+
+        return new static($results);
+    }
+
+    /**
      * Get an operator checker callback.
      *
-     * @param  string  $key
-     * @param  string  $operator
+     * @param  string $key
+     * @param  string $operator
      * @param  mixed  $value
      * @return \Closure
      */
@@ -237,17 +271,53 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
             switch ($operator) {
                 default:
                 case '=':
-                case '==':  return $retrieved == $value;
+                case '==':
+                    return $retrieved == $value;
                 case '!=':
-                case '<>':  return $retrieved != $value;
-                case '<':   return $retrieved < $value;
-                case '>':   return $retrieved > $value;
-                case '<=':  return $retrieved <= $value;
-                case '>=':  return $retrieved >= $value;
-                case '===': return $retrieved === $value;
-                case '!==': return $retrieved !== $value;
+                case '<>':
+                    return $retrieved != $value;
+                case '<':
+                    return $retrieved < $value;
+                case '>':
+                    return $retrieved > $value;
+                case '<=':
+                    return $retrieved <= $value;
+                case '>=':
+                    return $retrieved >= $value;
+                case '===':
+                    return $retrieved === $value;
+                case '!==':
+                    return $retrieved !== $value;
             }
         };
+    }
+
+    /**
+     * Get a value retrieving callback.
+     *
+     * @param  string $value
+     * @return callable
+     */
+    protected function valueRetriever($value)
+    {
+        if ($this->useAsCallable($value)) {
+            return $value;
+        }
+
+        return function ($item) use ($value) {
+            return Arr::dataGet($item, $value);
+        };
+    }
+
+    /**
+     * Determine if the given value is callable, but not a string.
+     *
+     * @param  mixed $value
+     * @return bool
+     */
+    protected function useAsCallable($value)
+    {
+        return !is_string($value) && is_callable($value);
     }
 
     /**
@@ -478,6 +548,10 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
      */
     public function offsetSet($offset, $value)
     {
-        $this->set($offset, $value);
+        if (is_null($offset)) {
+            $this->items[] = $value;
+        } else {
+            $this->items[$offset] = $value;
+        }
     }
 }
