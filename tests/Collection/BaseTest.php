@@ -112,4 +112,24 @@ class BaseTest extends TestCase
         unset($arr['name']);
         $this->assertEquals($arr, $collection->all());
     }
+
+    public function testFilter()
+    {
+        $collection = new Collection($this->arr);
+
+        $res = $collection->filter(function ($item) {
+            return $item == 'limx';
+        });
+
+        $this->assertEquals(['name' => 'limx'], $res->all());
+    }
+
+    public function testWhere()
+    {
+        $collection = new Collection($this->list);
+
+        $res = $collection->where('id', 1)->first();
+
+        $this->assertEquals(['id' => 1, 'name' => 'limx'], $res);
+    }
 }

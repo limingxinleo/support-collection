@@ -188,6 +188,69 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
     }
 
     /**
+     * Run a filter over each of the items.
+     *
+     * @param  callable|null $callback
+     * @return static
+     */
+    public function filter(callable $callback = null)
+    {
+        if ($callback) {
+            return new static(Arr::where($this->items, $callback));
+        }
+
+        return new static(array_filter($this->items));
+    }
+
+    /**
+     * Filter items by the given key value pair.
+     *
+     * @param  string $key
+     * @param  mixed  $operator
+     * @param  mixed  $value
+     * @return static
+     */
+    public function where($key, $operator, $value = null)
+    {
+        if (func_num_args() == 2) {
+            $value = $operator;
+
+            $operator = '=';
+        }
+
+        return $this->filter($this->operatorForWhere($key, $operator, $value));
+    }
+
+    /**
+     * Get an operator checker callback.
+     *
+     * @param  string  $key
+     * @param  string  $operator
+     * @param  mixed  $value
+     * @return \Closure
+     */
+    protected function operatorForWhere($key, $operator, $value)
+    {
+        return function ($item) use ($key, $operator, $value) {
+            $retrieved = Arr::dataGet($item, $key);
+
+            switch ($operator) {
+                default:
+                case '=':
+                case '==':  return $retrieved == $value;
+                case '!=':
+                case '<>':  return $retrieved != $value;
+                case '<':   return $retrieved < $value;
+                case '>':   return $retrieved > $value;
+                case '<=':  return $retrieved <= $value;
+                case '>=':  return $retrieved >= $value;
+                case '===': return $retrieved === $value;
+                case '!==': return $retrieved !== $value;
+            }
+        };
+    }
+
+    /**
      * Build to array.
      *
      * @return array
